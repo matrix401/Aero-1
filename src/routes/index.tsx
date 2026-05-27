@@ -10,10 +10,24 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="relative w-full bg-[var(--am-bg)] text-[var(--am-text)] overflow-hidden">
+      {/* BLUE BANNER - ADDED AT THE TOP */}
+      <div style={{ 
+        position: 'relative', 
+        zIndex: 100, 
+        background: '#0EA5E9', 
+        color: 'white', 
+        padding: '10px', 
+        textAlign: 'center', 
+        fontSize: '12px',
+        fontFamily: 'system-ui'
+      }}>
+        AeroMind - Legitimate Aviation Intelligence Company | Contact: zee@aero-1.com
+      </div>
+      
       <HUD />
       <Sections />
       
-      {/* Footer goes HERE - inside the div, after Sections */}
+      {/* Footer */}
       <footer style={{ 
         position: 'relative', 
         zIndex: 2, 

@@ -387,7 +387,7 @@ function Payoff() {
             className="mt-14 flex items-center justify-center gap-3"
           >
             <a
-              href="#"
+              href="/contact"
               className="group relative inline-flex items-center gap-3 px-6 py-3.5 border border-[var(--am-line-strong)] hover:border-[var(--am-green)] transition text-[var(--am-text)] font-mono text-[11px] uppercase tracking-[0.3em] bg-[rgba(7,10,16,0.6)] backdrop-blur"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--am-green)] am-pulse" />
@@ -395,7 +395,7 @@ function Payoff() {
               <span className="opacity-50 group-hover:translate-x-1 transition">→</span>
             </a>
             <a
-              href="#"
+              href="/about"
               className="inline-flex items-center gap-2 px-5 py-3.5 text-[var(--am-text-dim)] hover:text-[var(--am-text)] transition font-mono text-[11px] uppercase tracking-[0.3em]"
             >
               Read the manifest
@@ -403,8 +403,8 @@ function Payoff() {
           </motion.div>
           <div className="mt-24 grid grid-cols-3 gap-4 font-mono text-[9px] uppercase tracking-[0.3em] text-[var(--am-text-dimmer)]">
             <div className="text-left">AeroMind · 2026</div>
-            <div>Aviation Intelligence Layer</div>
-            <div className="text-right">Classified · Tier 1</div>
+            <div>Aviation Intelligence Platform</div>
+            <div className="text-right">Enterprise · Tier 1</div>
           </div>
         </div>
       </Sticky>
