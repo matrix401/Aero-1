@@ -75,6 +75,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "AeroMind — Aviation Intelligence Layer" },
       { name: "description", content: "AeroMind is a predictive aviation intelligence infrastructure — a synchronized orbital command system that turns weak signals into operational distress probability." },
       { name: "author", content: "AeroMind" },
+      // GOOGLE VERIFICATION META TAG - ADDED HERE
+      { name: "google-site-verification", content: "SmdSV_10iDX082nqJUiSTSQenDDmHoHs90frdhw1kss" },
       { property: "og:title", content: "AeroMind — Aviation Intelligence Layer" },
       { property: "og:description", content: "AeroMind is a predictive aviation intelligence infrastructure — a synchronized orbital command system that turns weak signals into operational distress probability." },
       { property: "og:type", content: "website" },
