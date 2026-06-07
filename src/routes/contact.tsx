@@ -36,6 +36,52 @@ function ContactComponent() {
         </p>
         <p style={{ marginBottom: '1rem' }}>📍 Location: United States</p>
         <p>For institutional access inquiries, please email us.</p>
+        <form
+  action="https://formspree.io/f/mqeopdej"
+  method="POST"
+  style={{
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    marginTop: '2rem'
+  }}
+>
+  <input
+    type="text"
+    name="name"
+    placeholder="Your Name"
+    required
+    style={{ padding: '12px' }}
+  />
+
+  <input
+    type="email"
+    name="email"
+    placeholder="Your Email"
+    required
+    style={{ padding: '12px' }}
+  />
+
+  <textarea
+    name="message"
+    placeholder="Your Message"
+    rows={5}
+    required
+    style={{ padding: '12px' }}
+  />
+
+  <button
+    type="submit"
+    style={{
+      padding: '12px',
+      background: '#22D3EE',
+      border: 'none',
+      cursor: 'pointer'
+    }}
+  >
+    Send Message
+  </button>
+</form>
         <div style={{ marginTop: '2rem' }}>
           <a href="/" style={{ color: '#22D3EE' }}>← Back to Home</a>
         </div>
