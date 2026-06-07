@@ -39,19 +39,31 @@ function ContactComponent() {
         <form
   action="https://formspree.io/f/mqeopdej"
   method="POST"
-  style={{
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    marginTop: '2rem'
-  }}
+ style={{
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+  marginTop: '2rem',
+  padding: '1.5rem',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(34,211,238,0.2)',
+  borderRadius: '20px',
+  backdropFilter: 'blur(20px)'
+}}
 >
   <input
     type="text"
     name="name"
     placeholder="Your Name"
     required
-    style={{ padding: '12px' }}
+    style={{
+  padding: '12px',
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(34,211,238,0.25)',
+  color: '#cfe7f5',
+  borderRadius: '12px',
+  backdropFilter: 'blur(12px)'
+}}
   />
 
   <input
@@ -59,7 +71,14 @@ function ContactComponent() {
     name="email"
     placeholder="Your Email"
     required
-    style={{ padding: '12px' }}
+    style={{
+  padding: '12px',
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(34,211,238,0.25)',
+  color: '#cfe7f5',
+  borderRadius: '12px',
+  backdropFilter: 'blur(12px)'
+}}
   />
 
   <textarea
@@ -67,17 +86,27 @@ function ContactComponent() {
     placeholder="Your Message"
     rows={5}
     required
-    style={{ padding: '12px' }}
+    style={{
+  padding: '12px',
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(34,211,238,0.25)',
+  color: '#cfe7f5',
+  borderRadius: '12px',
+  backdropFilter: 'blur(12px)'
+}}
   />
 
   <button
     type="submit"
     style={{
-      padding: '12px',
-      background: '#22D3EE',
-      border: 'none',
-      cursor: 'pointer'
-    }}
+  padding: '14px',
+  background: 'rgba(34,211,238,0.15)',
+  border: '1px solid rgba(34,211,238,0.4)',
+  borderRadius: '999px',
+  color: '#cfe7f5',
+  cursor: 'pointer',
+  backdropFilter: 'blur(12px)'
+}}
   >
     Send Message
   </button>
