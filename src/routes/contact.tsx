@@ -37,8 +37,13 @@ function ContactComponent() {
         <p style={{ marginBottom: '1rem' }}>📍 Location: United States</p>
         <p>For institutional access inquiries, please email us.</p>
         <form
-  action="https://formspree.io/f/mqeopdej?redirect=https://www.aero-1.com/contact-success"
+  action="https://formspree.io/f/mqeopdej"
   method="POST"
+   <input
+  type="hidden"
+  name="_redirect"
+  value="https://www.aero-1.com/contact-success"
+/>       
  style={{
   display: 'flex',
   flexDirection: 'column',
