@@ -39,12 +39,7 @@ function ContactComponent() {
         <form
   action="https://formspree.io/f/mqeopdej"
   method="POST"
-   <input
-  type="hidden"
-  name="_redirect"
-  value="https://www.aero-1.com/contact-success"
-/>       
- style={{
+  style={{
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
