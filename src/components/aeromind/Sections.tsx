@@ -73,7 +73,7 @@ function Genesis() {
       <Sticky scene={<Scene.Genesis />}>
         <div className="relative w-full max-w-6xl mx-auto text-center">
           <Label>Transmission · AM-001 · Initialization</Label>
-          <h1 className="font-display text-[clamp(2.5rem,7vw,6.5rem)] leading-[0.95] mt-8 text-[var(--am-text)]">
+          <h1 className="font-display text-[clamp(2.5rem,7vw,6.5rem)] leading-[1.05] mt-8 text-[var(--am-text)]">
             <FadeChars text="Aviation intelligence," />
             <br />
             <FadeChars text="coming online." className="text-[var(--am-text-dim)]" />
