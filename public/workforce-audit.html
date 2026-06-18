@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Station Reliability Audit — Aero One</title>
+<meta name="description" content="A 14–30 day diagnostic that converts station-level execution signals into a single Station Reliability Score. For airline operators, ground handlers, and airport leadership.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  /* ── Reset & Base ─────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #0A1628;
+    --bg2:        #0F1E35;
+    --bg3:        #152540;
+    --border:     #1E3355;
+    --amber:      #F59E0B;
+    --amber-dim:  #92400E;
+    --amber-bg:   #1C1300;
+    --white:      #F8FAFC;
+    --grey:       #94A3B8;
+    --grey-light: #CBD5E1;
+    --red:        #EF4444;
+    --green:      #22C55E;
+    --teal:       #00B4D8;
+    --font-body:  'Inter', sans-serif;
+    --font-mono:  'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Utility ──────────────────────────────────────────────────── */
+  .mono { font-family: var(--font-mono); }
+  .amber { color: var(--amber); }
+  .grey  { color: var(--grey); }
+  .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* ── Nav ──────────────────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10, 22, 40, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+    color: var(--white); text-decoration: none; letter-spacing: 0.08em;
+  }
+  .nav-logo span { color: var(--amber); }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a {
+    font-size: 13px; color: var(--grey); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    font-size: 13px; font-weight: 600;
+    background: var(--amber); color: #000;
+    padding: 8px 18px; border-radius: 4px;
+    text-decoration: none; transition: opacity 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.88; }
+
+  /* ── Hero ─────────────────────────────────────────────────────── */
+  .hero {
+    padding: 140px 0 80px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-label {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    color: var(--amber); letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+  }
+  .hero-label::before {
+    content: ''; display: inline-block; width: 20px; height: 1px;
+    background: var(--amber);
+  }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 52px); font-weight: 700; line-height: 1.12;
+    letter-spacing: -0.02em; margin-bottom: 24px;
+    max-width: 720px;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--amber);
+  }
+  .hero-sub {
+    font-size: 18px; color: var(--grey-light); line-height: 1.65;
+    max-width: 580px; margin-bottom: 40px;
+  }
+  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .btn-primary {
+    font-size: 14px; font-weight: 600;
+    background: var(--amber); color: #000;
+    padding: 14px 28px; border-radius: 4px;
+    text-decoration: none; transition: opacity 0.2s;
+    display: inline-block;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-ghost {
+    font-size: 14px; color: var(--grey);
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 6px; transition: color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--white); }
+  .hero-meta {
+    margin-top: 48px; padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 48px; flex-wrap: wrap;
+  }
+  .hero-stat { }
+  .hero-stat-num {
+    font-size: 28px; font-weight: 700; color: var(--white);
+    letter-spacing: -0.02em; line-height: 1;
+  }
+  .hero-stat-num span { color: var(--amber); }
+  .hero-stat-label {
+    font-size: 12px; color: var(--grey); margin-top: 6px;
+    font-family: var(--font-mono); letter-spacing: 0.05em;
+  }
+
+  /* ── Alert bar ────────────────────────────────────────────────── */
+  .alert-bar {
+    background: var(--amber-bg);
+    border-top: 2px solid var(--amber);
+    border-bottom: 1px solid var(--amber-dim);
+    padding: 20px 0;
+  }
+  .alert-bar-inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 24px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .alert-icon {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    color: var(--amber); background: rgba(245,158,11,0.15);
+    padding: 4px 8px; border-radius: 2px; white-space: nowrap;
+    margin-top: 2px; flex-shrink: 0;
+  }
+  .alert-text { font-size: 14px; color: #FDE68A; line-height: 1.6; }
+  .alert-text strong { color: var(--amber); }
+
+  /* ── Section common ───────────────────────────────────────────── */
+  .section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+  .section-label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    color: var(--amber); letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(22px, 3.5vw, 32px); font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 16px; color: var(--grey-light); line-height: 1.65;
+    max-width: 600px; margin-bottom: 48px;
+  }
+
+  /* ── Score Gauge ──────────────────────────────────────────────── */
+  .gauge-section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+  .gauge-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: center;
+  }
+  @media (max-width: 700px) {
+    .gauge-grid { grid-template-columns: 1fr; gap: 40px; }
+  }
+  .gauge-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+  }
+  .gauge-svg-wrap { position: relative; width: 260px; height: 160px; }
+  #gauge-svg { width: 260px; height: 160px; }
+  .gauge-score {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    text-align: center;
+  }
+  .gauge-num {
+    font-size: 48px; font-weight: 700; color: var(--white);
+    letter-spacing: -0.03em; line-height: 1;
+  }
+  .gauge-denom { font-size: 20px; color: var(--grey); }
+  .gauge-label {
+    font-family: var(--font-mono); font-size: 11px; color: var(--amber);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .gauge-layers { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; }
+  .layer-row { display: flex; flex-direction: column; gap: 5px; }
+  .layer-meta { display: flex; justify-content: space-between; }
+  .layer-name { font-size: 12px; color: var(--grey); font-family: var(--font-mono); }
+  .layer-score { font-size: 12px; font-weight: 600; color: var(--white); }
+  .layer-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .layer-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--amber); width: 0;
+    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  .layer-fill.green { background: var(--green); }
+  .layer-fill.red   { background: var(--red); }
+
+  .gauge-right { }
+  .gauge-right h2 {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+    line-height: 1.25; margin-bottom: 16px;
+  }
+  .gauge-right p {
+    font-size: 15px; color: var(--grey-light); line-height: 1.65;
+    margin-bottom: 24px;
+  }
+  .leak-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    padding: 20px; border-radius: 2px; margin-top: 24px;
+  }
+  .leak-card-label {
+    font-family: var(--font-mono); font-size: 10px; color: var(--amber);
+    letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .leak-card-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .leak-detail { font-size: 13px; color: var(--grey); line-height: 1.6; }
+  .leak-detail strong { color: var(--amber); }
+  .leak-fix {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--green); font-family: var(--font-mono);
+  }
+
+  /* ── Five Layers ──────────────────────────────────────────────── */
+  .layers-grid { display: flex; flex-direction: column; gap: 2px; }
+  .layer-item {
+    display: grid; grid-template-columns: 56px 200px 1fr;
+    gap: 0; align-items: stretch;
+    border: 1px solid var(--border); border-radius: 2px;
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .layer-item:hover { border-color: var(--amber); }
+  @media (max-width: 640px) {
+    .layer-item { grid-template-columns: 48px 1fr; }
+    .layer-desc { display: none; }
+  }
+  .layer-num {
+    background: var(--bg3); border-right: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    color: var(--amber); padding: 20px 0;
+  }
+  .layer-name-col {
+    background: var(--bg2); border-right: 1px solid var(--border);
+    padding: 20px 24px; display: flex; flex-direction: column;
+    justify-content: center;
+  }
+  .layer-name-col .ln { font-size: 14px; font-weight: 600; color: var(--white); }
+  .layer-name-col .lc { font-size: 11px; color: var(--grey); margin-top: 4px; font-family: var(--font-mono); }
+  .layer-desc {
+    background: var(--bg); padding: 20px 28px;
+    font-size: 14px; color: var(--grey-light); line-height: 1.6;
+    display: flex; align-items: center;
+  }
+
+  /* ── Impact grid ──────────────────────────────────────────────── */
+  .impact-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+  @media (max-width: 640px) { .impact-grid { grid-template-columns: 1fr; } }
+  .impact-cell {
+    background: var(--bg2); border: 1px solid var(--border);
+    padding: 24px 28px;
+  }
+  .impact-arrow {
+    font-family: var(--font-mono); font-size: 12px; color: var(--amber);
+    margin-bottom: 10px;
+  }
+  .impact-label { font-size: 13px; color: var(--grey); margin-bottom: 8px; }
+  .impact-value { font-size: 16px; font-weight: 700; color: var(--white); line-height: 1.3; }
+
+  /* ── ROI box ──────────────────────────────────────────────────── */
+  .roi-box {
+    background: var(--amber-bg); border: 1px solid var(--amber-dim);
+    border-top: 3px solid var(--amber);
+    padding: 32px 36px; margin-top: 40px; border-radius: 2px;
+  }
+  .roi-formula {
+    font-family: var(--font-mono); font-size: 14px; color: var(--amber);
+    margin: 16px 0; padding: 16px; background: rgba(0,0,0,0.3);
+    border-radius: 2px; line-height: 1.8;
+  }
+  .roi-note { font-size: 14px; color: #FDE68A; line-height: 1.65; }
+  .roi-note strong { color: var(--amber); }
+
+  /* ── Deliverables ─────────────────────────────────────────────── */
+  .deliverables-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+  @media (max-width: 640px) { .deliverables-grid { grid-template-columns: 1fr; } }
+  .del-item {
+    display: flex; gap: 16px;
+    background: var(--bg2); border: 1px solid var(--border);
+    padding: 22px 24px; align-items: flex-start;
+  }
+  .del-num {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    color: var(--bg); background: var(--amber);
+    width: 28px; height: 28px; border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .del-content { }
+  .del-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .del-desc { font-size: 13px; color: var(--grey); line-height: 1.5; }
+
+  /* ── Audience cards ───────────────────────────────────────────── */
+  .audience-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  @media (max-width: 700px) { .audience-grid { grid-template-columns: 1fr; } }
+  .aud-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-top: 3px solid var(--border);
+    padding: 28px 24px; transition: border-top-color 0.2s;
+  }
+  .aud-card:hover { border-top-color: var(--amber); }
+  .aud-role {
+    font-family: var(--font-mono); font-size: 10px; color: var(--amber);
+    letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px;
+  }
+  .aud-hook { font-size: 15px; font-weight: 600; line-height: 1.4; margin-bottom: 14px; }
+  .aud-body { font-size: 13px; color: var(--grey); line-height: 1.6; }
+
+  /* ── Low risk ─────────────────────────────────────────────────── */
+  .lowrisk-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 640px) { .lowrisk-grid { grid-template-columns: 1fr; } }
+  .check-list { display: flex; flex-direction: column; gap: 14px; }
+  .check-item { display: flex; gap: 14px; align-items: flex-start; }
+  .check-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(34,197,94,0.15); border: 1px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--green); flex-shrink: 0; margin-top: 2px;
+  }
+  .check-text { font-size: 14px; color: var(--grey-light); line-height: 1.5; }
+  .commitment-box {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-left: 3px solid var(--teal);
+    padding: 28px; border-radius: 2px;
+  }
+  .commitment-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .commitment-box p { font-size: 14px; color: var(--grey-light); line-height: 1.65; }
+
+  /* ── CTA ──────────────────────────────────────────────────────── */
+  .cta-section { padding: 80px 0; }
+  .cta-box {
+    background: var(--bg2); border: 1px solid var(--border);
+    padding: 56px 48px; text-align: center; max-width: 720px; margin: 0 auto;
+    position: relative; overflow: hidden;
+  }
+  .cta-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  }
+  .cta-label {
+    font-family: var(--font-mono); font-size: 10px; color: var(--amber);
+    letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px;
+  }
+  .cta-box h2 {
+    font-size: clamp(22px, 3.5vw, 32px); font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 16px;
+  }
+  .cta-box p { font-size: 15px; color: var(--grey-light); line-height: 1.65; margin-bottom: 36px; }
+  .cta-cost {
+    margin-top: 28px; padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--grey);
+    font-family: var(--font-mono);
+  }
+  .cta-cost strong { color: var(--amber); }
+
+  /* ── Footer ───────────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+  }
+  .footer-inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .footer-left { font-family: var(--font-mono); font-size: 12px; color: var(--grey); }
+  .footer-left a { color: var(--amber); text-decoration: none; }
+  .footer-right { font-size: 12px; color: var(--grey); }
+
+  /* ── Scroll animations ────────────────────────────────────────── */
+  .fade-up {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fade-up { opacity: 1; transform: none; transition: none; }
+    .layer-fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="https://www.aero-1.com" class="nav-logo">AERO<span>ONE</span></a>
+    <div class="nav-links">
+      <a href="#layers">What we audit</a>
+      <a href="#deliverables">Deliverables</a>
+      <a href="#contact" class="nav-cta">Request audit →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <p class="hero-label">Station Reliability Audit</p>
+    <h1>Detect execution leakage before it becomes <em>delay, cost, or DGCA scrutiny.</em></h1>
+    <p class="hero-sub">A 14–30 day station diagnostic that converts scattered operational signals into a single Station Reliability Score — and tells you exactly where to fix first.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">Request a 20-minute conversation</a>
+      <a href="#sample" class="btn-ghost">See sample output ↓</a>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="hero-stat-num">r <span>= −0.68</span></div>
+        <div class="hero-stat-label">Workforce → OTP correlation · p = 0.009</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span>154</span></div>
+        <div class="hero-stat-label">Signals across 5 intelligence layers</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span>72h</span></div>
+        <div class="hero-stat-label">Report delivery post-observation</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span>350+</span></div>
+        <div class="hero-stat-label">Aviation professionals placed · 90% rate</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ALERT BAR ────────────────────────────────────────────────────────── -->
+<div class="alert-bar">
+  <div class="alert-bar-inner">
+    <span class="alert-icon">DEC 2025</span>
+    <p class="alert-text">
+      IndiGo cancelled ~4,500 flights in 10 days. OTP dropped from 84.1% in October to 67.7% in November — then DGCA withheld December data entirely. DGCA stationed an oversight team inside IndiGo's own operations centre demanding hourly flight data. Fine: ₹22.2 crore. Bank guarantee: ₹50 crore. CEO cautioned. SVP Operations relieved.
+      <strong> The signals were there. Nobody integrated them in time.</strong>
+    </p>
+  </div>
+</div>
+
+<!-- ── SAMPLE OUTPUT / GAUGE ────────────────────────────────────────────── -->
+<section class="gauge-section" id="sample">
+  <div class="container">
+    <div class="gauge-grid">
+
+      <div class="gauge-wrap fade-up">
+        <div class="gauge-svg-wrap">
+          <svg id="gauge-svg" viewBox="0 0 260 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Track -->
+            <path d="M 20 140 A 110 110 0 0 1 240 140" stroke="#1E3355" stroke-width="14" stroke-linecap="round" fill="none"/>
+            <!-- Fill — animated via JS -->
+            <path id="gauge-fill" d="M 20 140 A 110 110 0 0 1 240 140" stroke="#1E3355" stroke-width="14" stroke-linecap="round" fill="none"
+              stroke-dasharray="345" stroke-dashoffset="345"/>
+            <!-- Tick marks -->
+            <line x1="20"  y1="140" x2="26"  y2="140" stroke="#1E3355" stroke-width="2"/>
+            <line x1="240" y1="140" x2="234" y2="140" stroke="#1E3355" stroke-width="2"/>
+            <line x1="130" y1="30"  x2="130" y2="38"  stroke="#1E3355" stroke-width="2"/>
+            <!-- Labels -->
+            <text x="14"  y="156" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748B">0</text>
+            <text x="234" y="156" font-family="JetBrains Mono,monospace" font-size="9" fill="#64748B">100</text>
+            <text x="118" y="24"  font-family="JetBrains Mono,monospace" font-size="9" fill="#64748B">50</text>
+          </svg>
+          <div class="gauge-score">
+            <div class="gauge-num" id="gauge-num">0<span class="gauge-denom">/100</span></div>
+          </div>
+        </div>
+        <div class="gauge-label">Station Reliability Score · Sample</div>
+        <div class="gauge-layers">
+          <div class="layer-row">
+            <div class="layer-meta">
+              <span class="layer-name mono">L1 · Workforce Readiness</span>
+              <span class="layer-score">68</span>
+            </div>
+            <div class="layer-bar"><div class="layer-fill" data-width="68" style="background:#F59E0B"></div></div>
+          </div>
+          <div class="layer-row">
+            <div class="layer-meta">
+              <span class="layer-name mono">L2 · Operational Execution</span>
+              <span class="layer-score">74</span>
+            </div>
+            <div class="layer-bar"><div class="layer-fill" data-width="74" style="background:#22C55E"></div></div>
+          </div>
+          <div class="layer-row">
+            <div class="layer-meta">
+              <span class="layer-name mono">L3 · Safety & Compliance</span>
+              <span class="layer-score">81</span>
+            </div>
+            <div class="layer-bar"><div class="layer-fill" data-width="81" style="background:#22C55E"></div></div>
+          </div>
+          <div class="layer-row">
+            <div class="layer-meta">
+              <span class="layer-name mono">L4 · Vendor Reliability</span>
+              <span class="layer-score">69</span>
+            </div>
+            <div class="layer-bar"><div class="layer-fill" data-width="69" style="background:#F59E0B"></div></div>
+          </div>
+          <div class="layer-row">
+            <div class="layer-meta">
+              <span class="layer-name mono">L5 · Risk Signals</span>
+              <span class="layer-score">63</span>
+            </div>
+            <div class="layer-bar"><div class="layer-fill" data-width="63" style="background:#EF4444"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gauge-right fade-up">
+        <h2>What a Station Reliability Score looks like in practice</h2>
+        <p>Every station gets a composite score across five layers. Below it: the exact execution leak driving the lowest layer, its commercial cost, and the 30-day fix.</p>
+        <div class="leak-card">
+          <div class="leak-card-label">Top execution leak identified</div>
+          <div class="leak-card-title">Documentation corrections occurring after the 25-minute STD threshold</div>
+          <div class="leak-detail">
+            <strong>Pattern:</strong> 4 affected departures/day × 8–12 avoidable minutes<br>
+            <strong>Cause:</strong> Shift-wise SOP variance + unclear handoff ownership between ramp agent and load control<br>
+            <strong>Monthly cost:</strong> 4 × 10 min × your cost/min × 30 days
+          </div>
+          <div class="leak-fix">30-day fix → Pre-departure documentation freeze at T-25 + escalation trigger</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── WHY THIS MATTERS ─────────────────────────────────────────────────── -->
+<section class="section" id="why">
+  <div class="container fade-up">
+    <p class="section-label">The problem</p>
+    <h2 class="section-title">Your teams are already working hard.<br>The system measures outcomes after the damage happens.</h2>
+    <p class="section-sub">OTP reports show the delay. Training records show the completion. Safety audits show the compliance. None of them show the signal that appeared six weeks earlier.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:8px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:24px;border-top:3px solid #EF4444">
+        <div style="font-family:var(--font-mono);font-size:10px;color:#EF4444;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px">Airlines</div>
+        <div style="font-size:13px;color:var(--grey-light);line-height:1.65">OTP dashboards show delay — not the workforce readiness signal that appeared 60 days before. Reactionary delays (62% of causes) compound across hubs. One upstream gap cascades.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:24px;border-top:3px solid var(--amber)">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--amber);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px">Ground Handlers</div>
+        <div style="font-size:13px;color:var(--grey-light);line-height:1.65">ISAGO 2025 now measures whether trained behaviour translates to live ramp execution — not just whether training records exist. Trained does not mean ready. The audit now checks the difference.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:24px;border-top:3px solid var(--teal)">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--teal);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px">Airport Operators</div>
+        <div style="font-size:13px;color:var(--grey-light);line-height:1.65">Your aggregate OTP reflects every airline and handler on your apron. One chronically underperforming station compounds reactionary delays across your entire operation.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FIVE LAYERS ──────────────────────────────────────────────────────── -->
+<section class="section" id="layers">
+  <div class="container fade-up">
+    <p class="section-label">Diagnostic methodology</p>
+    <h2 class="section-title">Five layers. One score. 14–30 days.</h2>
+    <p class="section-sub">Most systems observe one layer in isolation. Aero One cross-correlates all five — because the composite signal is what the individual layer misses.</p>
+    <div class="layers-grid">
+      <div class="layer-item">
+        <div class="layer-num">L1</div>
+        <div class="layer-name-col"><div class="ln">Workforce Readiness</div><div class="lc">38 signals</div></div>
+        <div class="layer-desc">Actual competency vs. rostered headcount. Supervisor dependency ratio. Training-to-execution gap per role. Attrition signals. Controllable vs. structural gaps.</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">L2</div>
+        <div class="layer-name-col"><div class="ln">Operational Execution</div><div class="lc">34 signals</div></div>
+        <div class="layer-desc">Turnaround discipline against STD/STA windows. SOP adherence on the ramp. Documentation accuracy. Handoff quality. Controllable delay causes separated from ATC, weather, network.</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">L3</div>
+        <div class="layer-name-col"><div class="ln">Safety & Compliance</div><div class="lc">32 signals</div></div>
+        <div class="layer-desc">Leading safety indicators — not post-incident reports. ISAGO alignment per the June 2025 revised methodology. Deviation frequency. Escalation discipline. No individuals named in pilot phase.</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">L4</div>
+        <div class="layer-name-col"><div class="ln">Vendor & Process Reliability</div><div class="lc">32 signals</div></div>
+        <div class="layer-desc">Ground handler coordination quality. Baggage and cargo sequencing gaps. Inter-agency communication breakdowns. Contractual KPI tracking accuracy.</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">L5</div>
+        <div class="layer-name-col"><div class="ln">Risk & Distress Signals</div><div class="lc">18 signals</div></div>
+        <div class="layer-desc">Early warning patterns: morale indicators, repeated workaround behaviours, documentation shortcuts, management visibility gaps. Signals management is currently seeing too late.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── IMPACT ───────────────────────────────────────────────────────────── -->
+<section class="section" id="impact">
+  <div class="container fade-up">
+    <p class="section-label">Expected impact</p>
+    <h2 class="section-title">What the audit is designed to identify</h2>
+    <p class="section-sub">These are improvement opportunities — not guarantees. All ranges are subject to what is found and what is implemented.</p>
+    <div class="impact-grid">
+      <div class="impact-cell">
+        <div class="impact-arrow">→</div>
+        <div class="impact-label">Turnaround discipline</div>
+        <div class="impact-value">1–3 minute improvement opportunity identified per flight</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-arrow">→</div>
+        <div class="impact-label">Avoidable rework & delays</div>
+        <div class="impact-value">5–10% reduction potential in repeated controllable delay causes</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-arrow">→</div>
+        <div class="impact-label">Manpower readiness visibility</div>
+        <div class="impact-value">5–15% improvement opportunity in rostered vs. ready headcount accuracy</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-arrow">→</div>
+        <div class="impact-label">Documentation & handoff errors</div>
+        <div class="impact-value">10–20% reduction potential in recurring errors, subject to implementation</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-arrow">→</div>
+        <div class="impact-label">Safety compliance escalation</div>
+        <div class="impact-value">Leading indicators visible 2–4 weeks before DGCA-observable deviation</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-arrow">→</div>
+        <div class="impact-label">ISAGO audit readiness</div>
+        <div class="impact-value">Station-level evidence of live behaviour compliance, not just training records</div>
+      </div>
+    </div>
+
+    <div class="roi-box">
+      <p style="font-size:13px;font-family:var(--font-mono);color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">Commercial leakage logic</p>
+      <p class="roi-note">If one recurring execution leak affects 3–5 flights per day across 30 days, the cost is not one incident — it is a pattern.</p>
+      <div class="roi-formula">
+        Monthly leakage estimate<br>
+        = affected flights/day<br>
+        × delay minutes per occurrence<br>
+        × your operational cost per minute<br>
+        × 30 days
+      </div>
+      <p class="roi-note"><strong>The formula is yours. The pattern identification is ours.</strong> The audit calculates this using your own internal cost assumptions.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── DELIVERABLES ─────────────────────────────────────────────────────── -->
+<section class="section" id="deliverables">
+  <div class="container fade-up">
+    <p class="section-label">What you receive</p>
+    <h2 class="section-title">Eight deliverables. 72 hours post-audit.</h2>
+    <p class="section-sub">Not a presentation deck. A structured operational report with a specific action plan for the next 30, 60, and 90 days.</p>
+    <div class="deliverables-grid">
+      <div class="del-item">
+        <div class="del-num">01</div>
+        <div class="del-content">
+          <div class="del-title">Station Reliability Score</div>
+          <div class="del-desc">0–100 composite score across all five layers with benchmark context</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">02</div>
+        <div class="del-content">
+          <div class="del-title">5-Layer Diagnostic Report</div>
+          <div class="del-desc">Layer-by-layer findings: what was observed, what was not, what it means operationally</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">03</div>
+        <div class="del-content">
+          <div class="del-title">Top 10 Execution Leaks</div>
+          <div class="del-desc">Ranked by commercial and safety impact. Controllable causes separated from external factors.</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">04</div>
+        <div class="del-content">
+          <div class="del-title">Root-Cause Map</div>
+          <div class="del-desc">Separates surface failures from structural causes. SOP gaps vs. behaviour gaps vs. resource gaps.</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">05</div>
+        <div class="del-content">
+          <div class="del-title">Operational Leak Map (₹/year)</div>
+          <div class="del-desc">Recurring leakage quantified using your own internal cost assumptions</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">06</div>
+        <div class="del-content">
+          <div class="del-title">Quick-Win Action Plan</div>
+          <div class="del-desc">Fixes achievable in 30 days with existing resources — no new procurement required</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">07</div>
+        <div class="del-content">
+          <div class="del-title">Risk Heatmap</div>
+          <div class="del-desc">Leading indicator dashboard: which signals are amber, which are approaching red</div>
+        </div>
+      </div>
+      <div class="del-item">
+        <div class="del-num">08</div>
+        <div class="del-content">
+          <div class="del-title">30/60/90-Day Roadmap</div>
+          <div class="del-desc">Prioritised corrective actions sequenced by operational impact and feasibility</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AUDIENCE ─────────────────────────────────────────────────────────── -->
+<section class="section" id="audience">
+  <div class="container fade-up">
+    <p class="section-label">Who this is for</p>
+    <h2 class="section-title">Built for the people who own station performance.</h2>
+    <div class="audience-grid" style="margin-top:40px">
+      <div class="aud-card">
+        <div class="aud-role">Airline Operations</div>
+        <div class="aud-hook">When DGCA stations officers inside your ops centre, the question is: would you have seen it coming?</div>
+        <div class="aud-body">The Station Reliability Audit answers that — for your stations, before the regulator asks it. Designed to support leadership decision-making, not to expose station teams.</div>
+      </div>
+      <div class="aud-card">
+        <div class="aud-role">Ground Handling Companies</div>
+        <div class="aud-hook">ISAGO 2025 changed the audit. Trained does not mean ready.</div>
+        <div class="aud-body">The new methodology requires live ramp behaviour evidence — not documentation. The audit becomes independent proof for airline contract reviews and renewal discussions.</div>
+      </div>
+      <div class="aud-card">
+        <div class="aud-role">Airport Operators</div>
+        <div class="aud-hook">Your OTP aggregate reflects every handler and airline on your apron.</div>
+        <div class="aud-body">The audit identifies whether degradation is driven by airline processes, handler execution, apron coordination, or recurring handoff failures — and which station is the source.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LOW RISK ─────────────────────────────────────────────────────────── -->
+<section class="section" id="lowrisk">
+  <div class="container fade-up">
+    <p class="section-label">How it works</p>
+    <h2 class="section-title">No IT integration. No software deployment. No disruption.</h2>
+    <div class="lowrisk-grid" style="margin-top:40px">
+      <div class="check-list">
+        <div class="check-item">
+          <div class="check-icon">✓</div>
+          <div class="check-text">Works with existing reports, anonymised operational data, and station observation</div>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">✓</div>
+          <div class="check-text">One station, one shift window — minimal disruption to live operations</div>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">✓</div>
+          <div class="check-text">Scope and methodology defined jointly before any observation begins</div>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">✓</div>
+          <div class="check-text">Safety observations anonymised at the individual level in pilot phase</div>
+        </div>
+        <div class="check-item">
+          <div class="check-icon">✓</div>
+          <div class="check-text">No system access, no IT/security clearance, no procurement required</div>
+        </div>
+      </div>
+      <div class="commitment-box">
+        <h3>What Aero One is not asking for</h3>
+        <p>This is not a software contract. The pilot audit is a structured diagnostic engagement. Scope, commercials, and data protocols are defined jointly before any observation begins. If the findings are useful, the relationship continues on terms we agree together.</p>
+        <p style="margin-top:16px;font-family:var(--font-mono);font-size:12px;color:var(--grey)">Founded by Calibre Aviation Academy — 350+ aviation professionals placed at IndiGo, Akasa Air, Air India, Fly91. The audit is grounded in real operational access, not theory.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ──────────────────────────────────────────────────────────────── -->
+<section class="cta-section" id="contact">
+  <div class="container">
+    <div class="cta-box fade-up">
+      <p class="cta-label">The next step</p>
+      <h2>Request a 20-minute conversation.</h2>
+      <p>We identify one station or operational flow where the audit can be initiated over 14–30 days. No commitment beyond that conversation.</p>
+      <a href="mailto:zee@calibreaviation.in?subject=Station Reliability Audit — Request for conversation" class="btn-primary" style="font-size:15px;padding:16px 36px">
+        zee@calibreaviation.in →
+      </a>
+      <div class="cta-cost">
+        The IndiGo December crisis cost <strong>₹24 crore</strong> in compensation,
+        <strong>₹22.2 crore</strong> in DGCA fines, and a <strong>₹50 crore</strong> bank guarantee.<br>
+        The audit costs a conversation.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <a href="https://www.aero-1.com">AERO ONE</a> · Station Reliability Audit · June 2026<br>
+      <span style="margin-top:4px;display:block">zee@calibreaviation.in · +91 79890 02484</span>
+    </div>
+    <div class="footer-right" style="text-align:right">
+      <div style="color:var(--grey);font-size:11px;line-height:1.6">
+        Sources: DGCA Press Note Jan 2026 · Wikipedia (IndiGo December 2025 crisis)<br>
+        IATA IGHC 2025 · ASG Aviation — IGOM Ed.14 · DGCA monthly traffic reports
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ── JS ───────────────────────────────────────────────────────────────── -->
+<script>
+// Gauge animation
+const TARGET = 72;
+const TOTAL_ARC = 345;
+const fill = document.getElementById('gauge-fill');
+const numEl = document.getElementById('gauge-num');
+let animated = false;
+
+function animateGauge() {
+  if (animated) return;
+  animated = true;
+  const start = performance.now();
+  const dur = 1600;
+  function step(now) {
+    const t = Math.min((now - start) / dur, 1);
+    const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    const score = Math.round(ease * TARGET);
+    const offset = TOTAL_ARC - (TOTAL_ARC * (score / 100));
+    fill.style.strokeDashoffset = offset;
+    // Color based on score
+    const color = score < 65 ? '#EF4444' : score < 75 ? '#F59E0B' : '#22C55E';
+    fill.style.stroke = color;
+    numEl.innerHTML = score + '<span class="gauge-denom">/100</span>';
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Scroll observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      // Trigger gauge if in view
+      if (entry.target.closest('.gauge-section') || entry.target.classList.contains('gauge-wrap')) {
+        animateGauge();
+        // Animate layer bars
+        document.querySelectorAll('.layer-fill').forEach(bar => {
+          const w = bar.dataset.width;
+          setTimeout(() => { bar.style.width = w + '%'; }, 200);
+        });
+      }
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Also trigger gauge on scroll to gauge section
+const gaugeSec = document.querySelector('.gauge-section');
+if (gaugeSec) observer.observe(gaugeSec);
+</script>
+</body>
+</html>
